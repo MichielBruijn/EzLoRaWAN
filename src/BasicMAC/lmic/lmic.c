@@ -1685,7 +1685,7 @@ static bit_t decodeFrame (void) {
     }
 
     if( (LMIC.dn2Ans || LMIC.dn1DlyAns || LMIC.dnfqAns || LMIC.dnfqAnsPend )
-        && !(LMIC.txrxFlags & TXRX_PING) && !((LMIC.clmode & CLASS_C) && (LMIC.txrxFlags & TXRX_DNW2)) ) {
+        && !(LMIC.txrxFlags & TXRX_PING) && !((LMIC.clmode & LMIC_CLASS_C) && (LMIC.txrxFlags & TXRX_DNW2)) ) {
         // Ack of RXParamSetup is very delicate since it might lead to loosing shared state between NWKS/device.
         // The server proves it has seen the RXParamSetupAns from the device by responding in a RX window anchored
         // to the frame that carried the RXParamSetupAns! This means RX from ping slots **and** any class C using RX2
@@ -1985,10 +1985,10 @@ static bit_t decodeFrame (void) {
             continue;
         }
         case MCMD_DEVMD_CONF: {
-            if( (LMIC.clmode & PEND_CLASS_C) && opts[oidx+1] == ((LMIC.clmode & CLASS_C) ? 0 : 2) ) {
+            if( (LMIC.clmode & PEND_CLASS_C) && opts[oidx+1] == ((LMIC.clmode & LMIC_CLASS_C) ? 0 : 2) ) {
                 decPollcnt();
                 LMIC.clmode &= ~PEND_CLASS_C;
-                LMIC.clmode ^= CLASS_C;
+                LMIC.clmode ^= LMIC_CLASS_C;
             } // else: unexpected confirm or unexpected class -- ignore
             oidx += 2;
             continue;
@@ -2407,7 +2407,7 @@ static void updataDone (osjob_t* osjob) {
     } else {
         // schedule down window1 reception
         txDone(LMIC.dn1Dly,
-               (LMIC.clmode & CLASS_C) == 0
+               (LMIC.clmode & LMIC_CLASS_C) == 0
                ? FUNC_ADDR(setupRx1DnData)
                : FUNC_ADDR(setupRx1ClassC));
     }
@@ -2432,7 +2432,7 @@ static void buildDataFrame (void) {
     }
     if( (LMIC.clmode & PEND_CLASS_C) ) {
         LMIC.frame[end+0] = MCMD_DEVMD_IND;
-        LMIC.frame[end+1] = (LMIC.clmode & CLASS_C) ? 0 : 2;
+        LMIC.frame[end+1] = (LMIC.clmode & LMIC_CLASS_C) ? 0 : 2;
         end += 2;
     }
 #endif
@@ -3137,7 +3137,7 @@ static void engineUpdate (void) {
     } else {
         // No TX pending - no scheduled RX
         if( (LMIC.opmode & OP_TRACK) == 0 ) {
-            if( (LMIC.clmode & CLASS_C) ) {
+            if( (LMIC.clmode & LMIC_CLASS_C) ) {
                 setupRx2ClassC();
             }
             return;
@@ -3180,7 +3180,7 @@ static void engineUpdate (void) {
 #endif
 
   txdelay:
-    if( (LMIC.clmode & CLASS_C) ) {
+    if( (LMIC.clmode & LMIC_CLASS_C) ) {
         setupRx2ClassC();
     }
     os_setTimedCallback(&LMIC.osjob, txbeg-TX_RAMPUP, FUNC_ADDR(runEngineUpdate));
@@ -3336,7 +3336,7 @@ void LMIC_tryRejoin (void) {
 
 // Check if other networks are around.
 void LMIC_setClassC (u8_t enabled) {
-    if( (LMIC.clmode & CLASS_C) == (enabled?CLASS_C:0) )
+    if( (LMIC.clmode & LMIC_CLASS_C) == (enabled?LMIC_CLASS_C:0) )
         return;  // already in that mode
     if( (LMIC.clmode & PEND_CLASS_C) )
         return; // change is already pending
@@ -3355,7 +3355,7 @@ void LMIC_setClassC (u8_t enabled) {
 #endif
     // LoRaWAN 1.0.2 - switch mode unilaterally
     // Device is provisioned as class C
-    LMIC.clmode = CLASS_C;
+    LMIC.clmode = LMIC_CLASS_C;
     engineUpdate();
 }
 
