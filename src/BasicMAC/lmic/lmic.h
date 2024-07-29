@@ -260,7 +260,7 @@ enum {
 
 // data stored in clmode
 enum {
-    CLASS_C      = 0x01,  // 0=class A, 1=class C
+    LMIC_CLASS_C      = 0x01,  // 0=class A, 1=class C
     PEND_CLASS_C = 0x02,  // 1=MCMD_DEVMD_IND sent (with !CLASS_C, waiting for MCMD_DEVMD_CONF)
 };
 // parameters for LMIC_setClassC(..)
